@@ -6,11 +6,13 @@
 #include "string.h"
 #include "driver/gpio.h"
 #include "nanoview_uart.h"
+#include "nanoview_main.h"
 
 static const int RX_BUF_SIZE = 128;
 
 #define TXD_PIN (GPIO_NUM_4)
 #define RXD_PIN (GPIO_NUM_5)
+#define LED (GPIO_NUM_2)
 
 enum state {
     WAIT_START,
@@ -18,7 +20,9 @@ enum state {
     IN_PACKET
 };
 
-void nv32_init_uart() {
+
+
+void nv_init_uart() {
     const uart_config_t uart_config = {
         .baud_rate = 2400,
         .data_bits = UART_DATA_8_BITS,
@@ -32,25 +36,28 @@ void nv32_init_uart() {
     uart_driver_install(UART_NUM_1, RX_BUF_SIZE * 2, 0, 0, NULL, 0);
 }
 
-void nv32_rx_task()
+void nv_rx_task(struct task_config *tc)
 {
     static const char *RX_TASK_TAG = "RX_TASK";
     esp_log_level_set(RX_TASK_TAG, ESP_LOG_INFO);
-    uint8_t* data = (uint8_t*) malloc(RX_BUF_SIZE+1);
+    //uint8_t* data = (uint8_t*) malloc(RX_BUF_SIZE+1);
+    struct nv_packet p;    
     uint8_t start, to_read = 0;
     uint8_t offset = 0;
     int rx_bytes = 0;
+    gpio_set_direction(LED, GPIO_MODE_OUTPUT);
     while (true) {
         do {
             start = 0;
             uart_read_bytes(UART_NUM_1, (uint8_t *)&start, 1, 1000 / portTICK_RATE_MS);
         } while (start != 0xAA);
+        gpio_set_level(LED, 1);
         // Got start
         read_type:
-            if (uart_read_bytes(UART_NUM_1, data, 1, 1000 / portTICK_RATE_MS) < 1)
+            if (uart_read_bytes(UART_NUM_1, &(p.type), 1, 1000 / portTICK_RATE_MS) < 1)
                 goto read_type;
 
-        switch (data[0]) {
+        switch (p.type) {
             case 0x10: 
                 to_read = 36;
                 break;
@@ -61,23 +68,27 @@ void nv32_rx_task()
                 to_read = 3;
                 break;
             default:
-                ESP_LOGW(RX_TASK_TAG, "Unknown packet typde: 0x%x", data[0]);
+                ESP_LOGW(RX_TASK_TAG, "Unknown packet typde: 0x%x", p.type);
                 continue; // Uknown packet type
         }
         
         while (to_read > 0) {
-            rx_bytes = uart_read_bytes(UART_NUM_1, data + sizeof(uint8_t)*(offset+1), to_read, 1000 / portTICK_RATE_MS);
+            rx_bytes = uart_read_bytes(UART_NUM_1, &(p.data[offset]), to_read, 1000 / portTICK_RATE_MS);
             to_read -= rx_bytes;
             offset += rx_bytes;
         }
         // Should have whole packet now
-        ESP_LOGI(RX_TASK_TAG, "Packet Type %02x: Read %d bytes", data[0], offset);
-        ESP_LOG_BUFFER_HEXDUMP(RX_TASK_TAG, data, offset+1, ESP_LOG_INFO);
-        uint16_t packet_crc = *((uint16_t *) (data+1+(offset-2)));
-        ESP_LOGI(RX_TASK_TAG, "CRC: %04x == %04x [%s]", packet_crc, nv_crc(data+sizeof(uint8_t), offset-2), ((packet_crc == nv_crc(data+sizeof(uint8_t), offset-2)) ? "OK" : "BAD"));
+        ESP_LOGD(RX_TASK_TAG, "Packet Type %02x: Read %d bytes", p.type, offset);
+        ESP_LOG_BUFFER_HEXDUMP(RX_TASK_TAG, p.data, offset, ESP_LOG_DEBUG);
+        uint16_t packet_crc = *((uint16_t *) (&(p.data[offset-2])));
+        ESP_LOGD(RX_TASK_TAG, "CRC: %04x == %04x [%s]", packet_crc, nv_crc(p.data, offset-2), ((packet_crc == nv_crc(p.data, offset-2)) ? "OK" : "BAD"));
+        if (xQueueSend(tc->xNvMessageQueue, (void *)&p, (TickType_t)(250 / portTICK_RATE_MS)) != pdPASS) {
+            ESP_LOGE(RX_TASK_TAG, "Error placing NV packet on queue");
+        }
         offset = 0;
+        gpio_set_level(LED, 0);
     }
-    free(data);
+    //free(data);
 }
 
 uint16_t nv_crc(uint8_t data[], uint8_t len) {
