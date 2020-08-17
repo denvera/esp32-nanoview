@@ -26,6 +26,7 @@ enum nv_packet_type {
 
 void nv_processor_task(struct task_config *tc) {
     struct nv_packet p;
+    char *json_string;
 
     while(true) {
         if(xQueueReceive(tc->xNvMessageQueue, &p, (TickType_t)(250 / portTICK_RATE_MS)) == pdPASS) {
@@ -50,12 +51,48 @@ void nv_processor_task(struct task_config *tc) {
     }
 }
 
+/*
+[
+    {
+        "name":"live_power or accumulated_energy or mains_voltage"
+        "channel":"total or 1..16"
+        "value": "value of channel"
+    }
+]
+*/
+
+char *create_live_power_json(struct nv_live_power *nvlp) {
+    cJSON *live_power = cJSON_CreateArray();
+    cJSON *name = cJSON_CreateString("mains_voltage");
+
+    for (int i = 1; i <= 16; i++) {
+
+    }
+    return "but";
+}
+
+char *create_accumulated_energy_json(struct nv_accumulated_energy *nvae) {
+    cJSON *accumulated_energy = cJSON_CreateArray();
+    cJSON *child_obj = NULL;
+    for (int i = 1; i <= 16; i++) {
+        
+    }
+    return "but";
+}
+
 void print_live_power(struct nv_live_power *nvlp) {
     printf("%-20s", "Live Energy: ");
+    printf("%5dV", nvlp->mains_voltage_v);
+    for (int i = 0; i < 16; i++) {
+        printf("%5dW", nvlp->live_power_w[i]);
+    }
     printf("\n");
 }
 
 void print_accumulated_energy(struct nv_accumulated_energy *nvae) {
-    printf("%-20s", "Accumulated Energy: ");
+    printf("%-26s", "Accumulated Energy: ");
+        for (int i = 0; i < 16; i++) {
+        printf("%4dWh", nvae->counters_wh[i]);
+    }
     printf("\n");
 }

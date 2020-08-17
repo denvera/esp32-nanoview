@@ -20,6 +20,8 @@ struct nv_firmware_version {
 };
 
 void nv_processor_task(struct task_config *tc);
+char *create_live_power_json(struct nv_live_power *nvlp);
+char *create_accumulated_energy_json(struct nv_accumulated_energy *nvae);
 void print_live_power(struct nv_live_power *nvlp);
 void print_accumulated_energy(struct nv_accumulated_energy *nvae);
 
