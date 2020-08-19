@@ -66,7 +66,7 @@ void app_main()
     };
 
     tc.xNvMessageQueue = xQueueCreate(10, sizeof(struct nv_packet));
-    tc.xMqttQueue      = xQueueCreate(10, sizeof(struct nv_packet));
+    tc.xMqttQueue      = xQueueCreate(10, sizeof(char *));
 
     if (tc.xNvMessageQueue == 0 || tc.xMqttQueue == 0) {
             ESP_LOGE(TAG, "Error creating queue!");
@@ -75,8 +75,8 @@ void app_main()
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     
     xTaskCreate((TaskFunction_t)console_task,      "console_task",   1024*4, &tc, configMAX_PRIORITIES, NULL);
-    xTaskCreate((TaskFunction_t)nv_mqtt_task,      "mqtt_task",      1024*4, &tc, configMAX_PRIORITIES, NULL);
-    xTaskCreate((TaskFunction_t)nv_processor_task, "processor_task", 1024*4, &tc, configMAX_PRIORITIES, NULL);
+    xTaskCreate((TaskFunction_t)nv_mqtt_task,      "mqtt_task",      1024*8, &tc, configMAX_PRIORITIES, NULL);
+    xTaskCreate((TaskFunction_t)nv_processor_task, "processor_task", 1024*8, &tc, configMAX_PRIORITIES, NULL);
     xTaskCreate((TaskFunction_t)nv_rx_task,        "uart_rx_task",   1024*4, &tc, configMAX_PRIORITIES, NULL);
 
     /* Waiting until either the connection is established (WIFI_CONNECTED_BIT) or connection failed for the maximum

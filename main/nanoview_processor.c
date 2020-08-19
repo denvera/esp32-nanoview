@@ -28,7 +28,7 @@ enum nv_packet_type {
 
 void nv_processor_task(struct task_config *tc) {
     struct nv_packet p;
-    char *json_string;
+    char *json_string = NULL;
     uint8_t last_data[2][128];
     bzero(last_data, 2*128);
     while(true) {
@@ -38,8 +38,7 @@ void nv_processor_task(struct task_config *tc) {
                     struct nv_live_power *nvlp = (struct nv_live_power *)&(p.data);                    
                     if (NV_MONITOR) print_live_power(nvlp);
                     if (memcmp(last_data[0], p.data, NV_LIVE_POWER_LEN) != 0) {
-                        json_string = create_live_power_json(nvlp);
-                        free(json_string);   
+                        json_string = create_live_power_json(nvlp);                        
                     }
                     memcpy(last_data[0], p.data, NV_LIVE_POWER_LEN);
                     break;
@@ -48,8 +47,7 @@ void nv_processor_task(struct task_config *tc) {
                     struct nv_accumulated_energy *nvae = (struct nv_accumulated_energy *)&(p.data);                    
                     if (NV_MONITOR) print_accumulated_energy(nvae);
                     if (memcmp(last_data[1], p.data, NV_ACCUMULATED_POWER_LEN) != 0) {
-                        json_string = create_accumulated_energy_json(nvae);
-                        free(json_string);   
+                        json_string = create_accumulated_energy_json(nvae);                        
                     }
                     memcpy(last_data[1], p.data, NV_ACCUMULATED_POWER_LEN);
                     break;
@@ -59,7 +57,14 @@ void nv_processor_task(struct task_config *tc) {
 
                 default:
                     ESP_LOGW(PROCESSOR_TASK_TAG, "Unknown packet type: %02x", p.type);                    
-            }            
+            }
+            if (json_string != NULL) {
+                if (xQueueSend(tc->xMqttQueue, (void *)&json_string, (TickType_t)(250 / portTICK_RATE_MS)) != pdPASS) {
+                    ESP_LOGE(PROCESSOR_TASK_TAG, "Error placing NV packet on queue");
+                    free(json_string);
+                }                
+                json_string = NULL;
+            }
         }
     }
 }
@@ -78,7 +83,7 @@ char *create_voltage_json(uint16_t volts) {
     char *json_string = NULL;
     cJSON *voltage_obj = cJSON_CreateObject();
     cJSON_AddItemToObject(voltage_obj, "name", cJSON_CreateString("mains_voltage"));
-    cJSON_AddItemToObject(voltage_obj, "volts", volts);
+    cJSON_AddItemToObject(voltage_obj, "volts", cJSON_CreateNumber(volts));
     json_string = cJSON_Print(voltage_obj);
     cJSON_Delete(voltage_obj);
     return json_string;

@@ -1,8 +1,8 @@
-menu "WiFi Configuration"
-    config WIFI_CONFIG_INCLUDE
-        bool "Use wifi_config.h instead of below"        
+menu "MQTT and WiFi Configuration"
+    config NV_CONFIG_INCLUDE
+        bool "Use nanoview_config.h instead of below"        
         help
-            Use wifi_config.h for WiFi config instead of below
+            Use nanoview_config.h for WiFi and MQTT config instead of below
 
     config ESP_WIFI_SSID
         string "WiFi SSID"
@@ -21,4 +21,10 @@ menu "WiFi Configuration"
         default 5
         help
             Set the Maximum retry to avoid station reconnecting to the AP unlimited when the AP is really inexistent.
+
+    config BROKER_URL
+        string "Broker URL"
+        default "mqtt://mqtt.eclipse.org"
+        help
+            URL of the broker to connect to
 endmenu

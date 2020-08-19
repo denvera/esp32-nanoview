@@ -10,7 +10,7 @@ extern "C" {
    If you'd rather not, just change the below entries to strings with
    the config you want - ie #define EXAMPLE_WIFI_SSID "mywifissid"
 */
-#ifndef CONFIG_WIFI_CONFIG_INCLUDE
+#ifndef CONFIG_NV_CONFIG_INCLUDE
 
 #define ESP_WIFI_SSID      CONFIG_ESP_WIFI_SSID
 #define ESP_WIFI_PASS      CONFIG_ESP_WIFI_PASSWORD
@@ -18,7 +18,7 @@ extern "C" {
 
 #else
 
-#include "wifi_config.h"
+#include "nanoview_config.h"
 
 #endif
 /* The event group allows multiple bits for each event, but we only care about two events:
