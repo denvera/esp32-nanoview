@@ -82,7 +82,7 @@ void app_main()
     /* Waiting until either the connection is established (WIFI_CONNECTED_BIT) or connection failed for the maximum
      * number of re-tries (WIFI_FAIL_BIT). The bits are set by event_handler() (see above) */
  
-
+    wifi_init_sta();
     /* xEventGroupWaitBits() returns the bits before the call returned, hence we can test which event actually
      * happened. */
     while(true) {
@@ -93,13 +93,13 @@ void app_main()
             portMAX_DELAY);
 
         if (bits & WIFI_CONNECTED_BIT) {
-                ESP_LOGI(TAG, "connected to ap SSID:%s password:%s",
-                        ESP_WIFI_SSID, ESP_WIFI_PASS);
+                ESP_LOGI(TAG, "connected to ap SSID:%s",
+                        ESP_WIFI_SSID);
                 init_sntp();
-                
+
         } else if (bits & WIFI_FAIL_BIT) {
-                ESP_LOGI(TAG, "Failed to connect to SSID:%s, password:%s",
-                        ESP_WIFI_SSID, ESP_WIFI_PASS);
+                ESP_LOGI(TAG, "Failed to connect to SSID:%s",
+                        ESP_WIFI_SSID);
                 vTaskDelay((30000 / portTICK_RATE_MS));
                 esp_restart();
         } else {

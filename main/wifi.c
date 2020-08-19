@@ -6,6 +6,7 @@
 #include "esp_wifi.h"
 #include "esp_event.h"
 #include "esp_log.h"
+#include "esp_netif_types.h"
 #include "nvs_flash.h"
 
 #include "lwip/err.h"
@@ -29,7 +30,8 @@ static void event_handler(void* arg, esp_event_base_t event_base,
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
         esp_wifi_connect();
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
-        if (s_retry_num < ESP_MAXIMUM_RETRY) {
+        sntp_stop();
+        if (s_retry_num < ESP_MAXIMUM_RETRY) {            
             esp_wifi_connect();
             s_retry_num++;
             ESP_LOGI(TAG, "retry to connect to the AP");
@@ -51,7 +53,8 @@ void wifi_init_sta(void)
 
     ESP_ERROR_CHECK(esp_netif_init());
     
-    esp_netif_create_default_wifi_sta();
+    esp_netif_t *wifi_netif = esp_netif_create_default_wifi_sta();
+    esp_netif_set_hostname(wifi_netif, "esp32-nanoview");
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));

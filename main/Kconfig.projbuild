@@ -1,4 +1,8 @@
 menu "WiFi Configuration"
+    config WIFI_CONFIG_INCLUDE
+        bool "Use wifi_config.h instead of below"        
+        help
+            Use wifi_config.h for WiFi config instead of below
 
     config ESP_WIFI_SSID
         string "WiFi SSID"

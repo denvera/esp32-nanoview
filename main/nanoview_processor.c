@@ -102,7 +102,7 @@ char *create_live_power_json(struct nv_live_power *nvlp) {
         cJSON_AddItemToArray(live_power, power_obj);
     }
     json_string = cJSON_Print(live_power);
-    ESP_LOGD(PROCESSOR_TASK_TAG, "Live Power: %s", json_string);
+    //ESP_LOGD(PROCESSOR_TASK_TAG, "Live Power: %s", json_string);
     cJSON_Delete(live_power);
     return json_string;
 }
@@ -119,7 +119,7 @@ char *create_accumulated_energy_json(struct nv_accumulated_energy *nvae) {
         cJSON_AddItemToArray(accumulated_energy, acc_energy_obj);
     }
     json_string = cJSON_Print(accumulated_energy);
-    ESP_LOGD(PROCESSOR_TASK_TAG, "Accumulated Energy: %s", json_string);
+    //ESP_LOGD(PROCESSOR_TASK_TAG, "Accumulated Energy: %s", json_string);
     cJSON_Delete(accumulated_energy);
     return json_string;
 }
