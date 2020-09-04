@@ -82,8 +82,10 @@ void nv_rx_task(struct task_config *tc)
         ESP_LOG_BUFFER_HEXDUMP(RX_TASK_TAG, p.data, offset, ESP_LOG_DEBUG);
         uint16_t packet_crc = *((uint16_t *) (&(p.data[offset-2])));
         ESP_LOGD(RX_TASK_TAG, "CRC: %04x == %04x [%s]", packet_crc, nv_crc(p.data, offset-2), ((packet_crc == nv_crc(p.data, offset-2)) ? "OK" : "BAD"));
-        if (xQueueSend(tc->xNvMessageQueue, (void *)&p, (TickType_t)(250 / portTICK_RATE_MS)) != pdPASS) {
-            ESP_LOGE(RX_TASK_TAG, "Error placing NV packet on queue");
+        if (packet_crc == nv_crc(p.data, offset-2)) {
+            if (xQueueSend(tc->xNvMessageQueue, (void *)&p, (TickType_t)(250 / portTICK_RATE_MS)) != pdPASS) {
+                ESP_LOGE(RX_TASK_TAG, "Error placing NV packet on queue");
+            }
         }
         offset = 0;
         gpio_set_level(LED, 0);
