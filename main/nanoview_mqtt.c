@@ -68,6 +68,7 @@ static esp_mqtt_client_handle_t nv_mqtt_start(void)
 {
     esp_mqtt_client_config_t mqtt_cfg = {
         .uri = BROKER_URL,
+        .buffer_size = 4096,
     };
 
     esp_mqtt_client_handle_t client = esp_mqtt_client_init(&mqtt_cfg);
@@ -82,7 +83,7 @@ void nv_mqtt_task(struct task_config *tc) {
     while(true) {
         if(xQueueReceive(tc->xMqttQueue, &publish_string, (TickType_t)(250 / portTICK_RATE_MS)) == pdPASS) {            
             if (publish_string != NULL) {                
-                int msg_id = esp_mqtt_client_publish(mqtt_client, "/esp-mqtt/nanoview", publish_string, 0, 1, 0);
+                int msg_id = esp_mqtt_client_publish(mqtt_client, "/esp-mqtt/nanoview", publish_string, 0, 0, 0);
                 free(publish_string);
                 publish_string = NULL;
             }

@@ -41,7 +41,7 @@ void nv_rx_task(struct task_config *tc)
     static const char *RX_TASK_TAG = "RX_TASK";
     esp_log_level_set(RX_TASK_TAG, ESP_LOG_INFO);
     //uint8_t* data = (uint8_t*) malloc(RX_BUF_SIZE+1);
-    struct nv_packet p;    
+    struct nv_packet p;
     uint8_t start, to_read = 0;
     uint8_t offset = 0;
     int rx_bytes = 0;
