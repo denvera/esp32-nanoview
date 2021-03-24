@@ -5,6 +5,10 @@ Intended to be useful with Grafana + InfluxDB or similar.
 
 [Protocol details](http://www.nanoview.co.za/protocol.html)
 
+## Wiring
+Useful info can be found at: [Hacking the NanoView with a RPi Zero W](http://silico.co.za/blog/2019/04/13/hacking-the-nanoview-with-a-rpi-zero-w/).  
+Instead of connecting TX to the RPi via voltage divider (Step 8 in the article linked above), connect it to the ESP32 configured UART RX pin (GPIO 5 as set in `nanoview_uart.c`). Ensure the ground of NanoHub and ESP32 are connected together too.
+
 ## ESP32 esp-idf Project Configuration
 ### Menuconfig
 Either run `idf.py menuconfig` and set the WiFi and MQTT parameters (under "MQTT and WiFi Configuration"), or use an include file as below.
